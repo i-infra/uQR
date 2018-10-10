@@ -1,8 +1,6 @@
 import re
 import math
 
-from bisect import bisect_left
-
 """
 Exceptions
 
@@ -1182,8 +1180,14 @@ class QRCode:
             data.write(buffer)
 
         needed_bits = len(buffer)
-        self.version = bisect_left(BIT_LIMIT_TABLE[self.error_correction],
-                                   needed_bits, start)
+
+        self.version = start
+        end = len(BIT_LIMIT_TABLE[self.error_correction])
+
+        while (self.version < end and 
+               needed_bits > BIT_LIMIT_TABLE[self.error_correction][self.version]):
+            self.version += 1
+
         if self.version == 41:
             raise DataOverflowError()
 
