@@ -1,5 +1,4 @@
 from . import constants, exceptions, util
-from .image.base import BaseImage
 
 import six
 from bisect import bisect_left
@@ -38,7 +37,6 @@ class QRCode:
     def __init__(self, version=None,
                  error_correction=constants.ERROR_CORRECT_M,
                  box_size=10, border=4,
-                 image_factory=None,
                  mask_pattern=None):
         _check_box_size(box_size)
         self.version = version and int(version)
@@ -49,9 +47,7 @@ class QRCode:
         self.border = int(border)
         _check_mask_pattern(mask_pattern)
         self.mask_pattern = mask_pattern
-        self.image_factory = image_factory
-        if image_factory is not None:
-            assert issubclass(image_factory, BaseImage)
+
         self.clear()
 
     def clear(self):
@@ -240,32 +236,6 @@ class QRCode:
             out.write('\n')
         out.flush()
 
-    def make_image(self, image_factory=None, **kwargs):
-        """
-        Make an image from the QR Code data.
-
-        If the data has not been compiled yet, make it first.
-        """
-        _check_box_size(self.box_size)
-        if self.data_cache is None:
-            self.make()
-
-        if image_factory is not None:
-            assert issubclass(image_factory, BaseImage)
-        else:
-            image_factory = self.image_factory
-            if image_factory is None:
-                # Use PIL by default
-                from qrcode.image.pil import PilImage
-                image_factory = PilImage
-
-        im = image_factory(
-            self.border, self.modules_count, self.box_size, **kwargs)
-        for r in range(self.modules_count):
-            for c in range(self.modules_count):
-                if self.modules[r][c]:
-                    im.drawrect(r, c)
-        return im
 
     def setup_timing_pattern(self):
         for r in range(8, self.modules_count - 8):
