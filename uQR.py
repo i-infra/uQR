@@ -472,7 +472,9 @@ MODE_SIZE_LARGE = {
 }
 
 ALPHA_NUM = b'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:'
-RE_ALPHA_NUM = re.compile(b'^[' + re.escape(ALPHA_NUM) + b']*\Z')
+ESCAPED_ALPHA_NUM = b'0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ\\ \\$\\%\\*\\+\\-\\.\\/\\:'
+
+RE_ALPHA_NUM = re.compile(b'^[' + ESCAPED_ALPHA_NUM + b']*\Z')
 
 # The number of bits for numeric delimited data lengths.
 NUMBER_LENGTH = {3: 10, 2: 7, 1: 4}
@@ -788,7 +790,7 @@ def optimal_data_chunks(data, minimum=4):
     num_pattern = re.compile(b'\d' + re_repeat)
     num_bits = _optimal_split(data, num_pattern)
     alpha_pattern = re.compile(
-        b'[' + re.escape(ALPHA_NUM) + b']' + re_repeat)
+        b'[' + ESCAPED_ALPHA_NUM + b']' + re_repeat)
     for is_num, chunk in num_bits:
         if is_num:
             yield QRData(chunk, mode=MODE_NUMBER, check_data=False)
