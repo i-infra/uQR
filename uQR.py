@@ -357,7 +357,6 @@ RS_BLOCK_TABLE = [
 
 ]
 
-
 def glog(n):
     if n < 1:  # pragma: no cover
         raise ValueError("glog(%s)" % n)
@@ -1211,59 +1210,6 @@ class QRCode:
                 pattern = i
 
         return pattern
-
-    def print_ascii(self, out=None, tty=False, invert=False):
-        """
-        Output the QR Code using ASCII characters.
-
-        :param tty: use fixed TTY color codes (forces invert=True)
-        :param invert: invert the ASCII characters (solid <-> transparent)
-        """
-        if out is None:
-            import sys
-            if sys.version_info < (2, 7):
-                # On Python versions 2.6 and earlier, stdout tries to encode
-                # strings using ASCII rather than stdout.encoding, so use this
-                # workaround.
-                import codecs
-                out = codecs.getwriter(sys.stdout.encoding)(sys.stdout)
-            else:
-                out = sys.stdout
-
-        if tty and not out.isatty():
-            raise OSError("Not a tty")
-
-        if self.data_cache is None:
-            self.make()
-
-        modcount = self.modules_count
-        codes = [bytes((code, )).decode('cp437')
-                 for code in (255, 223, 220, 219)]
-        if tty:
-            invert = True
-        if invert:
-            codes.reverse()
-
-        def get_module(x, y):
-            if (invert and self.border and
-                    max(x, y) >= modcount+self.border):
-                return 1
-            if min(x, y) < 0 or max(x, y) >= modcount:
-                return 0
-            return self.modules[x][y]
-
-        for r in range(-self.border, modcount+self.border, 2):
-            if tty:
-                if not invert or r < modcount+self.border-1:
-                    out.write('\x1b[48;5;232m')   # Background black
-                out.write('\x1b[38;5;255m')   # Foreground white
-            for c in range(-self.border, modcount+self.border):
-                pos = get_module(r, c) + (get_module(r+1, c) << 1)
-                out.write(codes[pos])
-            if tty:
-                out.write('\x1b[0m')
-            out.write('\n')
-        out.flush()
 
 
     def setup_timing_pattern(self):
