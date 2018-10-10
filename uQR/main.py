@@ -1,7 +1,15 @@
-from . import constants, exceptions, util
+from . import constants, util
 
 from bisect import bisect_left
 
+"""
+Exceptions
+
+Formerly in exceptions.py
+"""
+
+class DataOverflowError(Exception):
+    pass
 
 def make(data=None, **kwargs):
     qr = QRCode(**kwargs)
@@ -156,7 +164,7 @@ class QRCode:
         self.version = bisect_left(util.BIT_LIMIT_TABLE[self.error_correction],
                                    needed_bits, start)
         if self.version == 41:
-            raise exceptions.DataOverflowError()
+            raise DataOverflowError()
 
         # Now check whether we need more bits for the mode sizes, recursing if
         # our guess was too low
