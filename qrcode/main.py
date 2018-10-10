@@ -187,35 +187,6 @@ class QRCode:
 
         return pattern
 
-    def print_tty(self, out=None):
-        """
-        Output the QR Code only using TTY colors.
-
-        If the data has not been compiled yet, make it first.
-        """
-        if out is None:
-            import sys
-            out = sys.stdout
-
-        if not out.isatty():
-            raise OSError("Not a tty")
-
-        if self.data_cache is None:
-            self.make()
-
-        modcount = self.modules_count
-        out.write("\x1b[1;47m" + (" " * (modcount * 2 + 4)) + "\x1b[0m\n")
-        for r in range(modcount):
-            out.write("\x1b[1;47m  \x1b[40m")
-            for c in range(modcount):
-                if self.modules[r][c]:
-                    out.write("  ")
-                else:
-                    out.write("\x1b[1;47m  \x1b[40m")
-            out.write("\x1b[1;47m  \x1b[0m\n")
-        out.write("\x1b[1;47m" + (" " * (modcount * 2 + 4)) + "\x1b[0m\n")
-        out.flush()
-
     def print_ascii(self, out=None, tty=False, invert=False):
         """
         Output the QR Code using ASCII characters.
