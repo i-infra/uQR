@@ -8,7 +8,7 @@ This library is a fork of [python-qrcode](https://github.com/lincolnloop/python-
 
 The primary *interface* implication of MicroPython compatibility is that this library does not produce images. It only produces bitmap-style matrices: you encode your data into a QR code pixel matrix using this library, and then impose that matrix onto a frame buffer.
 
-This library *does work*. But generating a QR code requires a fair amount of code and memory: not all microprocessors will be able to use this library. For example, I was not able to use this library on an ESP8266 using the file upload method: I would run out of memory when I imported the library. I *was* able to use this library when I compiled it into a MicroPython binary--following [AdaFruit's instructions](https://learn.adafruit.com/building-and-running-micropython-on-the-esp8266/build-firmware)--but I was only able to encode small amounts of data: I ran out of memory while trying to encode larger QR codes.
+This library *does work*. But generating a QR code is memory and code intensive: you may be limited by the capabilities of your microprocessor. See the [installation](#installation) notes below for some details.
 
 Porting the `python-qrcode` library to MicroPython involved:
 
@@ -28,7 +28,7 @@ Porting the `python-qrcode` library to MicroPython involved:
   >>> matrix = qr.get_matrix()
 ```
 
-The variable `matrix` is now a two-dimensional list of booleans, representing a bitmap of the required QR code. Specifically, it has the value:
+The variable `matrix` is now a two-dimensional list of booleans, representing a bitmap of the required QR code. Because the QR system is designed for print, a `True` value indicates black and `False` indicates white. Specifically, `matrix` has the value:
 
 ```
   [
@@ -82,4 +82,12 @@ You can now use this bitmap to construct an image on a display. For example, I d
 
 ![An LED screen displaying a QR code](docs/uQRRocks.png)
 
-## Compiling into MicroPython
+## Installation
+
+Because generating a QR code requires a fair amount of code and memory, not all microprocessors will be able to use this library. But you can reduce the memory requirements of using this library by compiling the module into your MicroPython firmware binary.
+
+For example, I was not able to use this library at all on the ESP8266 when using the file upload method of module installation. But by compiling uQR into my MicroPython binary, I was able to generate small QR codes. Even so, I was unable to generate large QR codes without running out of memory. I will be performing similar tests on the ESP32.
+
+I compiled my own MicroPython firmware binary by following [AdaFruit's instructions](https://learn.adafruit.com/building-and-running-micropython-on-the-esp8266/build-firmware). You can include the uQR module by placing `uQR.py` into `micropython/ports/esp8266/modules` before running `make`.
+
+
