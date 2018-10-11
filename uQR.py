@@ -1,5 +1,4 @@
 import re
-import math
 
 """
 Exceptions
@@ -397,21 +396,31 @@ class Polynomial:
 
         return Polynomial(num, 0)
 
+    """
+    EDIT
+    """
+
     def __mod__(self, other):
-        difference = len(self) - len(other)
-        if difference < 0:
-            return self
 
-        ratio = glog(self[0]) - glog(other[0])
+        this = self
 
-        num = [
-            item ^ gexp(glog(other_item) + ratio)
-            for item, other_item in zip(self, other)]
-        if difference:
-            num.extend(self[-difference:])
+        while True:
+            difference = len(this) - len(other)
 
-        # recursive call
-        return Polynomial(num, 0) % other
+            if difference < 0:
+                break
+
+            ratio = glog(this[0]) - glog(other[0])
+
+            num = [
+                item ^ gexp(glog(other_item) + ratio)
+                for item, other_item in zip(this, other)]
+            if difference:
+                num.extend(this[-difference:])
+
+            this = Polynomial(num, 0)
+
+        return this
 
 
 class RSBlock:
@@ -582,7 +591,7 @@ def make_mask_func(pattern):
     if pattern == 3:   # 011
         return lambda i, j: (i + j) % 3 == 0
     if pattern == 4:   # 100
-        return lambda i, j: (math.floor(i / 2) + math.floor(j / 3)) % 2 == 0
+        return lambda i, j: (int(i / 2) + int(j / 3)) % 2 == 0
     if pattern == 5:  # 101
         return lambda i, j: (i * j) % 2 + (i * j) % 3 == 0
     if pattern == 6:  # 110
@@ -683,7 +692,10 @@ def _lost_point_level2(modules, modules_count):
             if top_right != next_row[col + 1]:
                 # reduce 33.3% of runtime via next().
                 # None: raise nothing if there is no next item.
-                next(modules_range_iter, None)
+                try:
+                    next(modules_range_iter)
+                except StopIteration:
+                    pass
             elif top_right != this_row[col]:
                 continue
             elif top_right != next_row[col]:
@@ -735,7 +747,10 @@ def _lost_point_level3(modules, modules_count):
 # if this_row[col + 10] == True,  pattern1 shift 4, pattern2 shift 2. So min=2.
 # if this_row[col + 10] == False, pattern1 shift 1, pattern2 shift 1. So min=1.
             if this_row[col + 10]:
-                next(modules_range_short_iter, None)
+                try:
+                    next(modules_range_short_iter)
+                except StopIteration:
+                    pass
 
     for col in modules_range:
         modules_range_short_iter = iter(modules_range_short)
@@ -765,7 +780,10 @@ def _lost_point_level3(modules, modules_count):
                 ):
                 lost_point += 40
             if modules[row + 10][col]:
-                next(modules_range_short_iter, None)
+                try:
+                    next(modules_range_short_iter)
+                except StopIteration:
+                    pass
 
     return lost_point
 
@@ -805,7 +823,8 @@ def optimal_data_chunks(data, minimum=4):
 
 def _optimal_split(data, pattern):
     while data:
-        match = re.search(pattern, data)
+        #match = re.search(pattern), data)
+        match = pattern.search(data)
         if not match:
             break
         start, end = match.start(), match.end()
@@ -903,7 +922,7 @@ class BitBuffer:
         return ".".join([str(n) for n in self.buffer])
 
     def get(self, index):
-        buf_index = math.floor(index / 8)
+        buf_index = int(index / 8)
         return ((self.buffer[buf_index] >> (7 - index % 8)) & 1) == 1
 
     def put(self, num, length):
