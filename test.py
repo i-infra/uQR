@@ -34,5 +34,3 @@ class TestMatrixCreation(unittest.TestCase):
 
             # The two rows from the two libraries should be identical
             self.assertEqual(len(micro_row), len(macro_row))
-            
-
