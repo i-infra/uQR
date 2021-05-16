@@ -18,6 +18,7 @@ Porting the `python-qrcode` library to MicroPython involved:
   4. Removing QR code image generation.
   5. Rewriting recursive function calls into loops: MicroPython has a much shallower recursion limit than CPython.
   6. Consolidating all of the code into one file, for easier MicroPython deployment.
+  7. Reworking some aspects of regular expression utiliation and payload chunking for uRE support.
 
 ## Example
 
@@ -26,42 +27,36 @@ Porting the `python-qrcode` library to MicroPython involved:
   >>> qr = QRCode()
   >>> qr.add_data('uQR rocks!')
   >>> matrix = qr.get_matrix()
+  >>> print(qr.render_matrix())
 ```
 
-The variable `matrix` is now a two-dimensional list of booleans, representing a bitmap of the required QR code. Because the QR system is designed for print, a `True` value indicates black and `False` indicates white. Specifically, `matrix` has the value:
+The variable `matrix` is now a two-dimensional list of booleans, representing a bitmap of the required QR code. Because the QR system is designed for print, a `True` value indicates black and `False` indicates white. This matrix can be previewed by printing the string returned by `qr.render_matrix()` - ie:
 
 ```
-  [
-    [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, True, True, True, True, True, True, True, False, True, True, False, False, False, False, True, True, True, True, True, True, True, False, False, False, False],
-    [False, False, False, False, True, False, False, False, False, False, True, False, False, False, False, False, False, False, True, False, False, False, False, False, True, False, False, False, False],
-    [False, False, False, False, True, False, True, True, True, False, True, False, False, False, True, False, True, False, True, False, True, True, True, False, True, False, False, False, False],
-    [False, False, False, False, True, False, True, True, True, False, True, False, True, True, False, True, True, False, True, False, True, True, True, False, True, False, False, False, False],
-    [False, False, False, False, True, False, True, True, True, False, True, False, True, False, True, True, True, False, True, False, True, True, True, False, True, False, False, False, False],
-    [False, False, False, False, True, False, False, False, False, False, True, False, True, True, False, False, True, False, True, False, False, False, False, False, True, False, False, False, False],
-    [False, False, False, False, True, True, True, True, True, True, True, False, True, False, True, False, True, False, True, True, True, True, True, True, True, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False, False, False, False, True, True, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, True, False, False, False, True, False, True, True, True, True, True, False, True, True, True, True, True, True, False, False, True, False, False, False, False],
-    [False, False, False, False, True, False, True, False, False, True, False, False, False, True, False, False, True, True, False, False, True, False, True, False, True, False, False, False, False],
-    [False, False, False, False, False, False, False, False, True, False, True, False, True, False, False, False, True, True, True, False, True, False, False, True, False, False, False, False, False],
-    [False, False, False, False, True, True, True, True, True, True, False, True, False, True, False, True, True, True, False, False, False, False, False, True, False, False, False, False, False],
-    [False, False, False, False, False, True, True, False, True, True, True, False, True, False, True, True, False, False, False, False, False, True, True, False, True, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False, False, False, False, True, False, False, True, True, True, True, False, True, False, True, False, False, False, False, False, False],
-    [False, False, False, False, True, True, True, True, True, True, True, False, True, True, False, True, False, True, True, False, True, True, True, True, False, False, False, False, False],
-    [False, False, False, False, True, False, False, False, False, False, True, False, False, False, False, False, False, False, False, False, False, True, False, False, True, False, False, False, False],
-    [False, False, False, False, True, False, True, True, True, False, True, False, True, False, True, False, True, True, False, True, True, False, False, True, False, False, False, False, False],
-    [False, False, False, False, True, False, True, True, True, False, True, False, False, False, True, False, True, True, True, False, True, False, True, True, True, False, False, False, False],
-    [False, False, False, False, True, False, True, True, True, False, True, False, False, True, False, False, True, True, False, False, True, True, False, False, False, False, False, False, False],
-    [False, False, False, False, True, False, False, False, False, False, True, False, False, False, True, True, True, False, False, True, False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, True, True, True, True, True, True, True, False, True, True, True, True, False, True, True, False, False, True, False, False, True, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False],
-    [False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False],
-  ]
+
+    ███████ █  █  ███████    
+    █     █  █ █  █     █    
+    █ ███ █   █   █ ███ █    
+    █ ███ █ ██  █ █ ███ █    
+    █ ███ █ █   █ █ ███ █    
+    █     █ ██  █ █     █    
+    ███████ █ █ █ ███████    
+            █  █             
+    █   █ ███ █ ██████  █    
+     ███      █ ██  █ █ █    
+    █ ███ ██  ██ ██ █  █     
+    █  █     █ █ █     █     
+    █  █ ████ █ █    ██ █    
+            ██  ███ █ █      
+    ███████ ███████ ████     
+    █     █  █ █     █  █    
+    █ ███ █ ██  ██ ██  █     
+    █ ███ █  █  ███ █ ███    
+    █ ███ █  ███ █  ██       
+    █     █   ██   █         
+    ███████ █ █ ██   █  █    
+
+
 ```
 
 You can now use this bitmap to construct an image on a display. For example, I display the QR code on a 128x64  ssd1306 screen over I2C:
