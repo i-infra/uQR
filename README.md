@@ -32,32 +32,8 @@ Porting the `python-qrcode` library to MicroPython involved:
 
 The variable `matrix` is now a two-dimensional list of booleans, representing a bitmap of the required QR code. Because the QR system is designed for print, a `True` value indicates black and `False` indicates white. This matrix can be previewed by printing the string returned by `qr.render_matrix()` - ie:
 
-```
 
-    ███████ █  █  ███████    
-    █     █  █ █  █     █    
-    █ ███ █   █   █ ███ █    
-    █ ███ █ ██  █ █ ███ █    
-    █ ███ █ █   █ █ ███ █    
-    █     █ ██  █ █     █    
-    ███████ █ █ █ ███████    
-            █  █             
-    █   █ ███ █ ██████  █    
-     ███      █ ██  █ █ █    
-    █ ███ ██  ██ ██ █  █     
-    █  █     █ █ █     █     
-    █  █ ████ █ █    ██ █    
-            ██  ███ █ █      
-    ███████ ███████ ████     
-    █     █  █ █     █  █    
-    █ ███ █ ██  ██ ██  █     
-    █ ███ █  █  ███ █ ███    
-    █ ███ █  ███ █  ██       
-    █     █   ██   █         
-    ███████ █ █ ██   █  █    
-
-
-```
+![image](https://user-images.githubusercontent.com/77526490/118411357-22b0e280-b662-11eb-9234-c38abc88734c.png)
 
 You can now use this bitmap to construct an image on a display. For example, I display the QR code on a 128x64  ssd1306 screen over I2C:
 
