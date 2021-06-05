@@ -1309,10 +1309,18 @@ class QRCode:
         return code
 
     def render_matrix(self):
+        top_bottom_map = {
+            (False, False): " ",
+            (True, False): "▀",
+            (False, True): "▄",
+            (True, True): "█",
+        }
         out = ""
-        for row in self.get_matrix():
-            out += "".join(
-                [{False: " ", True: "█"}[x] if x in (False, True) else "╳" for x in row]
-            )
+        matrix = self.get_matrix()
+        if len(matrix) % 1 == 1:
+            matrix += [matrix[0]]
+        for (rowa, rowb) in zip(matrix[0::2], matrix[1::2]):
+            row = zip(rowa, rowb)
+            out += "".join([top_bottom_map.get(pair) for pair in row])
             out += "\n"
         return out
